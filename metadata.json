@@ -1,0 +1,5 @@
+{
+  "name": "Urban Narrative Decoder",
+  "description": "A comparative analysis tool that explores how neighborhoods and places are digitally constructed across Google Maps, Airbnb, social media, and event listings, identifying tensions in public representation and urban narrative.",
+  "requestFramePermissions": []
+}
