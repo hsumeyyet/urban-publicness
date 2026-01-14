@@ -7,7 +7,9 @@ import AnalysisSection from './components/AnalysisSection';
 import PublicnessChart from './components/PublicnessChart';
 import PublicnessTrend from './components/PublicnessTrend';
 
-const App: React.FC = () => {
+import LoginGate from './components/LoginGate';
+
+const AppInner: React.FC = () => {
   const [place, setPlace] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -390,5 +392,13 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+export default App;
+
+const App: React.FC = () => (
+  <LoginGate>
+    <AppInner />
+  </LoginGate>
+);
 
 export default App;
