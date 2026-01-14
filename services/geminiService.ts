@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY;
 
 export const analyzePlaceNarratives = async (placeName: string): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
