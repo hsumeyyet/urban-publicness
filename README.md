@@ -30,3 +30,8 @@ View your app in AI Studio: https://ai.studio/apps/drive/1FaBU5lhuLFq5FQCwjMlBOt
 3. This keeps your API key on the server and prevents exposing it in the browser.
 
 If you want, I can add a small client helper to call the new endpoint and remove any client-side usage of `GEMINI_API_KEY`.
+
+## Security note (important)
+
+- If your API key was ever present in the repository or built assets, rotate it immediately in the Google Cloud Console: delete the exposed key and create a new one.
+- Keep the new `GEMINI_API_KEY` only in your Vercel project environment variables (do not commit it).
