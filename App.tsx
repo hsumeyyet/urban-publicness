@@ -4,6 +4,8 @@ import { analyzePlaceNarratives } from './services/geminiService';
 import { AnalysisResult } from './types';
 import PlatformCard from './components/PlatformCard';
 import AnalysisSection from './components/AnalysisSection';
+import PublicnessChart from './components/PublicnessChart';
+import PublicnessTrend from './components/PublicnessTrend';
 
 const App: React.FC = () => {
   const [place, setPlace] = useState('');
@@ -11,6 +13,7 @@ const App: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = useCallback(async (e: React.FormEvent) => {
@@ -42,9 +45,44 @@ const App: React.FC = () => {
     setShowExportMenu(false);
   };
 
-  const exportAsPdf = () => {
+  const exportAsCsv = () => {
+    if (!result) return;
+    const csvData = [
+      ['Platform', 'Narrative Summary', 'Tone', 'Public Nature', 'Key Keywords'],
+      ...result.platforms.map(p => [p.platform, p.narrativeSummary, p.tone, p.publicNature, p.keyKeywords.join('; ')]),
+      [],
+      ['Platform History (5y)'],
+      ['Platform', 'Year', 'Public Nature', 'Tone', 'Narrative Summary', 'Key Keywords'],
+      ...result.platforms.flatMap(p => (p.history || []).map(h => [p.platform, h.year, h.publicNature, h.tone, h.narrativeSummary, h.keyKeywords.join('; ')])),
+      [],
+      ['Publicness Timeline (5y)'],
+      ['Year', 'Dominant Nature', 'Summary'],
+      ...(result.publicnessTimeline || []).map(pt => [pt.year, pt.dominantNature, pt.summary]),
+      [],
+      ['Overlaps'],
+      ...result.overlaps.map(o => [o]),
+      [],
+      ['Tensions'],
+      ...result.tensions.map(t => [t]),
+      [],
+      ['Foregrounded Publics'],
+      ...result.publics.foregrounded.map(f => [f]),
+      [],
+      ['Marginalized Publics'],
+      ...result.publics.marginalized.map(m => [m]),
+      [],
+      ['Conclusion Type', result.conclusion.type],
+      ['Conclusion Assessment', result.conclusion.assessment]
+    ];
+    const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${result.placeName.replace(/\s+/g, '_')}_analysis.csv`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
     setShowExportMenu(false);
-    window.print();
   };
 
   // Close menu on click outside
@@ -58,11 +96,26 @@ const App: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}
-      <header className="bg-slate-900 text-white py-12 px-4 shadow-xl mb-10 print:hidden">
-        <div className="max-w-6xl mx-auto text-center">
+      <header className="bg-slate-900 dark:bg-slate-800 text-white py-12 px-4 shadow-xl mb-10 print:hidden">
+        <div className="max-w-6xl mx-auto text-center relative">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="absolute top-4 right-4 p-2 bg-slate-800 dark:bg-slate-700 rounded-full hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors"
+            title="Toggle Dark Mode"
+          >
+            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
+          </button>
           <div className="inline-block px-3 py-1 bg-indigo-500 text-[10px] font-bold rounded-full mb-4 tracking-widest uppercase">
             Placemaking Research Tool
           </div>
@@ -119,10 +172,8 @@ const App: React.FC = () => {
 
         {loading && (
           <div className="text-center py-20 space-y-6 print:hidden">
-            <div className="flex justify-center items-center gap-4">
-              <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce delay-75"></div>
-              <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce delay-150"></div>
-              <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce delay-300"></div>
+            <div className="w-64 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full animate-pulse" style={{width: '60%'}}></div>
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-slate-800">Scraping Digital Fragments...</h3>
@@ -164,6 +215,12 @@ const App: React.FC = () => {
                 <PlatformCard key={idx} data={platform} />
               ))}
             </div>
+
+            {/* Publicness Visualization */}
+            <PublicnessChart data={result.platforms} />
+
+            {/* Temporal Trend */}
+            <PublicnessTrend timeline={result.publicnessTimeline} />
 
             {/* Analysis Deep Dive */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -245,6 +302,28 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Academic References */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-12 print:bg-white print:border-slate-200">
+              <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                <i className="fa-solid fa-book text-indigo-500"></i>
+                Research Methodology & References
+              </h3>
+              <div className="space-y-4 text-sm text-slate-700">
+                <p>
+                  This analysis draws from theories of digital publicness, examining how online platforms shape perceptions of urban spaces. The methodology combines AI-powered content analysis with grounded web search to identify narrative patterns across platforms.
+                </p>
+                <ul className="list-disc list-inside space-y-2">
+                  <li><strong>Public Space Theory:</strong> Habermas, J. (1989). <em>The Structural Transformation of the Public Sphere</em>. MIT Press.</li>
+                  <li><strong>Digital Urbanism:</strong> Townsend, A. (2013). <em>Smart Cities: Big Data, Civic Hackers, and the Quest for a New Utopia</em>. W.W. Norton & Company.</li>
+                  <li><strong>Platform Studies:</strong> Gillespie, T. (2010). "The politics of 'platforms'." <em>New Media & Society</em>, 12(3), 347-364.</li>
+                  <li><strong>AI in Urban Analysis:</strong> Batty, M. (2013). <em>The New Science of Cities</em>. MIT Press.</li>
+                </ul>
+                <p className="text-xs text-slate-500 mt-4">
+                  For your thesis, cite this tool as: "Urban Narrative Decoder (2025). AI-powered analysis of digital publicness in urban spaces."
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -294,6 +373,13 @@ const App: React.FC = () => {
                    >
                      <i className="fa-solid fa-file-code text-amber-500"></i>
                      JSON Data
+                   </button>
+                   <button 
+                    onClick={exportAsCsv}
+                    className="w-full text-left px-5 py-3 hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700 font-medium transition-colors border-t border-slate-50"
+                   >
+                     <i className="fa-solid fa-file-csv text-green-500"></i>
+                     CSV Data
                    </button>
                  </div>
                )}

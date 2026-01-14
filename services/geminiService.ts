@@ -19,13 +19,17 @@ export const analyzePlaceNarratives = async (placeName: string): Promise<Analysi
     - Contradictions or tensions.
     - Which publics are foregrounded or marginalized.
     - Whether the place appears more open, controlled, or contested on each platform.
-    
+
+    Temporal dimension (5 years, yearly buckets):
+    - For each platform, provide a history array with entries per year for the last 5 years (YYYY) including publicNature, tone, narrativeSummary, keyKeywords.
+    - Provide a top-level publicnessTimeline summarizing the dominant publicness per year (Open/Controlled/Contested) with a 1-2 sentence summary of the shift.
+
     Conclude with an assessment of its publicness:
     - "Hybrid": Seamless blend of digital and physical norms.
     - "Agonistic": A site of productive conflict and visible diversity.
     - "Homogenized": Uniformly commercialized or flattened narrative.
 
-    Ensure you use Google Search grounding to find real, specific details about current reviews, listings, and descriptions for ${placeName}.
+    Ensure you use Google Search grounding to find real, specific details about current and historical reviews, listings, and descriptions for ${placeName}.
   `;
 
   const response = await ai.models.generateContent({
@@ -47,9 +51,35 @@ export const analyzePlaceNarratives = async (placeName: string): Promise<Analysi
                 narrativeSummary: { type: Type.STRING },
                 tone: { type: Type.STRING },
                 keyKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
-                publicNature: { type: Type.STRING, enum: ['Open', 'Controlled', 'Contested'] }
+                publicNature: { type: Type.STRING, enum: ['Open', 'Controlled', 'Contested'] },
+                history: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      year: { type: Type.STRING },
+                      publicNature: { type: Type.STRING, enum: ['Open', 'Controlled', 'Contested'] },
+                      tone: { type: Type.STRING },
+                      narrativeSummary: { type: Type.STRING },
+                      keyKeywords: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ['year', 'publicNature', 'tone', 'narrativeSummary', 'keyKeywords']
+                  }
+                }
               },
               required: ['platform', 'narrativeSummary', 'tone', 'keyKeywords', 'publicNature']
+            }
+          },
+          publicnessTimeline: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                year: { type: Type.STRING },
+                dominantNature: { type: Type.STRING, enum: ['Open', 'Controlled', 'Contested'] },
+                summary: { type: Type.STRING }
+              },
+              required: ['year', 'dominantNature', 'summary']
             }
           },
           overlaps: { type: Type.ARRAY, items: { type: Type.STRING } },
