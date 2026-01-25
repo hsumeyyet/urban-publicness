@@ -1,0 +1,10 @@
+dist
+node_modules
+src
+components
+*.html
+*.tsx
+*.ts
+!api/**/*.ts
+vite.config.ts
+tsconfig.json
