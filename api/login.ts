@@ -6,6 +6,30 @@ const sign = (payload: string, key: string) => {
 };
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers for GitHub Pages
+  const origin = req.headers.origin || '';
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'https://hsume.github.io',
+    /^https:\/\/.*\.github\.io$/
+  ];
+  
+  const isAllowed = allowedOrigins.some(allowed => {
+    if (typeof allowed === 'string') return origin === allowed;
+    return allowed.test(origin);
+  });
+  
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });

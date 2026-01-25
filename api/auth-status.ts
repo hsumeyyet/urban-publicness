@@ -16,6 +16,29 @@ const verify = (token: string, key: string) => {
 };
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers for GitHub Pages
+  const origin = req.headers.origin || '';
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'https://hsume.github.io',
+    /^https:\/\/.*\.github\.io$/
+  ];
+  
+  const isAllowed = allowedOrigins.some(allowed => {
+    if (typeof allowed === 'string') return origin === allowed;
+    return allowed.test(origin);
+  });
+  
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   const PROXY_KEY = process.env.PROXY_KEY;
   if (!PROXY_KEY) return res.status(500).json({ error: 'Server misconfigured' });
 

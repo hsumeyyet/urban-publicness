@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { analyzePlaceNarratives } from './services/geminiService';
+import { analyzePlaceNarratives } from './src/services/geminiService';
 import { AnalysisResult } from './types';
 import PlatformCard from './components/PlatformCard';
 import AnalysisSection from './components/AnalysisSection';
@@ -84,6 +84,12 @@ const AppInner: React.FC = () => {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+    setShowExportMenu(false);
+  };
+
+  const exportAsPdf = () => {
+    if (!result) return;
+    window.print();
     setShowExportMenu(false);
   };
 
@@ -392,8 +398,6 @@ const AppInner: React.FC = () => {
     </div>
   );
 };
-
-export default App;
 
 const App: React.FC = () => (
   <LoginGate>
