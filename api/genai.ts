@@ -31,34 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const proxyKey = req.headers['x-proxy-key'] || req.headers['x-proxy-token'];
-
-  // Accept either header token or session cookie
-  const cookie = req.headers.cookie || '';
-  const match = cookie.match(/(?:^|; )session=([^;]+)/);
-  const sessionToken = match ? match[1] : null;
-
-  const PROXY_KEY = process.env.PROXY_KEY;
-  if (!PROXY_KEY) return res.status(500).json({ error: 'Server misconfigured' });
-
-  const verifySession = (token: string | null) => {
-    if (!token) return false;
-    try {
-      const [b64, sig] = token.split('.');
-      const payload = Buffer.from(b64, 'base64url').toString('utf8');
-      const expected = require('crypto').createHmac('sha256', PROXY_KEY).update(payload).digest('base64url');
-      const { exp } = JSON.parse(payload);
-      if (expected !== sig) return false;
-      if (Date.now() / 1000 > exp) return false;
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  if (!(proxyKey === PROXY_KEY || verifySession(sessionToken))) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  // No authentication required
 
   const { placeName } = req.body || {};
   if (!placeName || typeof placeName !== 'string') {

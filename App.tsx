@@ -7,8 +7,6 @@ import AnalysisSection from './components/AnalysisSection';
 import PublicnessChart from './components/PublicnessChart';
 import PublicnessTrend from './components/PublicnessTrend';
 
-import LoginGate from './components/LoginGate';
-
 const AppInner: React.FC = () => {
   const [place, setPlace] = useState('');
   const [loading, setLoading] = useState(false);
@@ -399,10 +397,4 @@ const AppInner: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
-  <LoginGate>
-    <AppInner />
-  </LoginGate>
-);
-
-export default App;
+export default AppInner;
