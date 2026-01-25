@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from '../../types';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCAOm2B1p_U7edlo9S_JyqndUaER2JThrI';
+const API_KEY = 'AIzaSyCAOm2B1p_U7edlo9S_JyqndUaER2JThrI';
 
 export const analyzePlaceNarratives = async (placeName: string): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
